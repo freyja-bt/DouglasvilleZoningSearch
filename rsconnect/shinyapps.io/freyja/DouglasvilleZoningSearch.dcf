@@ -1,0 +1,13 @@
+name: DouglasvilleZoningSearch
+title: DouglasvilleZoningSearch
+username:
+account: freyja
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4276514
+bundleId: 4793361
+url: https://freyja.shinyapps.io/DouglasvilleZoningSearch/
+when: 1625603362.69531
+lastSyncTime: 1625603362.69531
+asMultiple: FALSE
+asStatic: FALSE
