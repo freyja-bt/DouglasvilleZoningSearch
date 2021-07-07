@@ -239,9 +239,12 @@ server <- function(input, output, session) {
   
   options(shiny.maxRequestSize=30*1024^2)
   
-  session$onSessionEnded(function() {
-    stopApp()
-  })
+  # # Important for 
+  # session$onSessionEnded(function() {
+  #   stopApp()
+  # })
+  
+  
     # var <- tibble(
     #     property = NULL,
     #     class = NULL
@@ -310,6 +313,56 @@ server <- function(input, output, session) {
             output$jurAnswer <- renderText({
                 paste("Within", jurInt$NAME)
             })
+            cat(jurInt$NAME)
+            
+            if(jurInt$NAME == "Douglasville"){
+              # cat("\nnice\n")
+              # observe({
+              #   req(input$jurSearch)
+              prvSrch <- input$search1
+              # 
+              srch <- reactiveVal({str_to_title(input$jurSearch)})
+              
+              cat(srch())
+              cat("\n")
+              # cat(addresses[str_detect(addresses,srch())==T])
+              cat(sum(str_detect(addresses,srch())==T))
+              cat("\n")
+              
+              observeEvent(input$jurSubmit,{
+              output$zone_table <- renderTable(
+                parcels_tibble%>%
+                  filter(
+                    full_address %in% c(prvSrch,addresses[str_detect(addresses,srch())==T])
+                    )%>%
+                  select(
+                    "Parcel Number" = PIN,
+                    "Address" = ADDRESS,
+                    "Zoning Code" = DV_ZONING_,
+                    "Zoning Description" = DV_ZONING1)
+                )
+
+
+              updateSelectizeInput(session, 'search1', selected = c(prvSrch, addresses[str_detect(addresses,srch())==T]), choices = addresses, server = TRUE)
+              })
+              # })
+              
+              # cat(prvSrch)
+              # cat("\n")
+              # cat(srchIndx())
+              # cat("\n")
+              # cat(addresses[srchIndx()])
+              # cat("\n")
+              
+              # updateSelectizeInput(session, 'search1', selected = c(prvSrch, addresses[srchIndx()]), options = list(create = FALSE))
+              
+              
+              
+              
+            # }else{
+            #   cat("ope \n")
+            }
+            
         }else if(countyTF==T){
             cat("within county \n")
             output$jurAnswer <- renderText({
@@ -324,71 +377,74 @@ server <- function(input, output, session) {
             
     })
     
-    # var <- eventReactive(input$submit1,{
-    #     tibble(
-    #         property = input$search1,
-    #         class = class(input$search1)
-    #     )
-    # })
+    # # Adding new data
     # 
-    # var <- eventReactive(input$submit2,{
-    #     tibble(
-    #         property = input$search2,
-    #         class = class(input$search2)
+    # # var <- eventReactive(input$submit1,{
+    # #     tibble(
+    # #         property = input$search1,
+    # #         class = class(input$search1)
+    # #     )
+    # # })
+    # # 
+    # # var <- eventReactive(input$submit2,{
+    # #     tibble(
+    # #         property = input$search2,
+    # #         class = class(input$search2)
+    # #     )
+    # # })
+    # # 
+    # # observe({
+    # #     cat(property = input$search1)
+    # #     cat("\n")
+    # #     cat(class = class(input$search1))
+    # #     cat("\n")
+    # #     cat(unlist(var()))
+    # #     })
+    # observe(
+    #     # cat("\n"),
+    #     cat(ls(globalenv()))
+    # )
+    # observeEvent(input$majorGo,{
+    #     withProgress(
+    #         message = 'Uploading new data',
+    #         detail = 'This may take a while...',
+    #         value = 0,{
+    #     uploadedData <- input$majUpdate
+    #     if(is.null(input$majUpdate)) return(NULL)
+    #     
+    #     tempdirname <- dirname(uploadedData$datapath[1])
+    #     
+    #     for (i in 1:nrow(uploadedData)) {
+    #         file.rename(
+    #             uploadedData$datapath[i],
+    #             paste0(tempdirname, "/", uploadedData$name[i])
+    #         )
+    #     }
+    #     
+    #     newShp <- st_read(
+    #         paste(
+    #             tempdirname,
+    #             uploadedData$name[grep(pattern = "*shp$",uploadedData$name)],
+    #             sep = "/"
+    #         )
+    #     )#%>%
+    #       #  st_transform(4326)
+    #     # file_name <- uploadedData$name[1]%>%
+    #     #     str_extract("^.*(?=\\.)")
+    #     setProgress(
+    #         1/2,
+    #         message = "Saving data"
     #     )
-    # })
-    # 
-    # observe({
-    #     cat(property = input$search1)
-    #     cat("\n")
-    #     cat(class = class(input$search1))
-    #     cat("\n")
-    #     cat(unlist(var()))
+    #     st_write(newShp, paste0("www/savedData/Parcels", year(today()),month(today()),day(today()),".shp"))
+    #     
+    #     output$memo <- renderUI({
+    #         em("Please reload the program for changes to take effect")
     #     })
-    observe(
-        # cat("\n"),
-        cat(ls(globalenv()))
-    )
-    observeEvent(input$majorGo,{
-        withProgress(
-            message = 'Uploading new data',
-            detail = 'This may take a while...',
-            value = 0,{
-        uploadedData <- input$majUpdate
-        if(is.null(input$majUpdate)) return(NULL)
-        
-        tempdirname <- dirname(uploadedData$datapath[1])
-        
-        for (i in 1:nrow(uploadedData)) {
-            file.rename(
-                uploadedData$datapath[i],
-                paste0(tempdirname, "/", uploadedData$name[i])
-            )
-        }
-        
-        newShp <- st_read(
-            paste(
-                tempdirname,
-                uploadedData$name[grep(pattern = "*shp$",uploadedData$name)],
-                sep = "/"
-            )
-        )#%>%
-          #  st_transform(4326)
-        # file_name <- uploadedData$name[1]%>%
-        #     str_extract("^.*(?=\\.)")
-        setProgress(
-            1/2,
-            message = "Saving data"
-        )
-        st_write(newShp, paste0("www/savedData/Parcels", year(today()),month(today()),day(today()),".shp"))
-        
-        output$memo <- renderUI({
-            em("Please reload the program for changes to take effect")
-        })
-        setProgress(1)
-        })
-    })
+    #     setProgress(1)
+    #     })
+    # })
     
+    # Zoning Check by Address
     zone1 <- eventReactive(input$submit1,{
             parcels_tibble%>%
                 filter(
@@ -414,7 +470,7 @@ server <- function(input, output, session) {
                 "Zoning Description" = DV_ZONING1)
     })
     
-    observeEvent(input$submit1,{
+    observeEvent(input$submit1 | input$jurSubmit,{
         output$zone_table <- renderTable(zone1())
         if(sum(str_detect(zone1()$`Zoning Description`,"\\*"),na.rm=T)>0){
             output$note <- renderUI({
