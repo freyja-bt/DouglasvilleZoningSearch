@@ -314,6 +314,7 @@ server <- function(input, output, session) {
                 paste("Within", jurInt$NAME)
             })
             cat(jurInt$NAME)
+
             cat("\n")
             
             if(jurInt$NAME == "Douglasville"){
@@ -471,7 +472,7 @@ server <- function(input, output, session) {
                 "Zoning Description" = DV_ZONING1)
     })
     
-    observeEvent(input$submit1,{
+    observeEvent(input$submit1 | input$jurSubmit,{
         output$zone_table <- renderTable(zone1())
         if(sum(str_detect(zone1()$`Zoning Description`,"\\*"),na.rm=T)>0){
             output$note <- renderUI({
