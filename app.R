@@ -79,6 +79,19 @@ geo_fun_m <- memoise(geo_fun, cache = cache_filesystem("www/.rcache"))
 
 parcel_data <- geo_fun_m(x="DV_ZONING_ LIKE '%'")
 
+dict <- read_html("https://pe.usps.com/text/pub28/28apc_002.htm")%>%
+  html_element(".Basic_no_title")%>%
+  html_table(header=T)%>%
+  rename(
+    "Name" = `PrimaryStreet SuffixName`,
+    "Common" = `CommonlyUsed StreetSuffix orAbbreviation`,
+    "Standard" = `Postal ServiceStandardSuffixAbbreviation`
+  )%>%
+  mutate(
+    across(
+      .fns = str_to_title
+    )
+  )
 
 
 ## Using local shapefiles
@@ -323,7 +336,24 @@ server <- function(input, output, session) {
               #   req(input$jurSearch)
               prvSrch <- input$search1
               # 
-              srch <- reactiveVal({str_to_title(input$jurSearch)})
+              srch <- reactiveVal({
+                # correct street suffix format and capital/lowercase
+                adapt <- str_to_title(input$jurSearch)%>%
+                  str_replace(.,
+                              str_extract(.,
+                                          "[:alpha:]*$"),
+                              dict$Standard[str_which(dict$Name,
+                                                      paste0("^",
+                                                             str_extract(.,
+                                                                         "[:alpha:]*$"),
+                                                             "$")
+                                                      )]
+                              )
+                if(length(adapt)==0){
+                  adapt <- str_to_title(input$jurSearch)
+                  }
+                adapt
+                })
               
               cat(srch())
               cat("\n")
