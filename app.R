@@ -8,12 +8,8 @@
 #
 
 library(shiny)
-library(tidyr)
-library(dplyr)
-library(purrr)
-library(stringr)
+library(tidyverse)
 library(sf)
-library(tibble)
 library(lubridate)
 library(tmaptools)
 library(tigris)
@@ -27,8 +23,8 @@ load("www/zoning_data.RData")
 load("www/zoning_gis.RData")
 source("www/address_standard.R")
 
-# Read data from ArcGIS Online
-
+# Read data from ArcGIS Online 
+## Not using cache
 # if(exists("request")==F){
 # url <- parse_url("https://services8.arcgis.com/Dujj4RmEh5VlpyET/arcgis/rest/services")
 # url$path <- paste(url$path, "CODGIS/FeatureServer/5/query", sep = "/")
@@ -45,7 +41,7 @@ source("www/address_standard.R")
 
 ## Using cache
 if(file.exists("www/.rcache") &
-  (read_html("https://services8.arcgis.com/Dujj4RmEh5VlpyET/ArcGIS/rest/services/CODGIS/FeatureServer/5")%>%
+  (read_html("https://services8.arcgis.com/Dujj4RmEh5VlpyET/ArcGIS/rest/services/CODGIS/FeatureServer/5")%>% ### NOTE: This address may need to be updated when the GIS service is hosted from douglasville instead of suburban
         html_element("body")%>%
         html_text2()%>%
         str_extract("(?<=Last Edit Date:)([:graph:]+[:blank:]?)*(?=\n\n)")%>%
@@ -60,7 +56,7 @@ if(file.exists("www/.rcache") &
 
 geo_fun <- function(x){
     if(exists("request")==F){
-        url <- parse_url("https://services8.arcgis.com/Dujj4RmEh5VlpyET/arcgis/rest/services")
+        url <- parse_url("https://services8.arcgis.com/Dujj4RmEh5VlpyET/arcgis/rest/services") ### NOTE: This address may need to be updated when the GIS service is hosted from douglasville instead of suburban
         url$path <- paste(url$path, "CODGIS/FeatureServer/5/query", sep = "/")
         url$query <- list(
             where = x,
@@ -78,28 +74,6 @@ geo_fun_m <- memoise(geo_fun, cache = cache_filesystem("www/.rcache"))
 
 
 parcel_data <- geo_fun_m(x="DV_ZONING_ LIKE '%'")
-
-## Using local shapefiles
-# www_contents <- list.files(path = "www/savedData", recursive = TRUE, full.names = TRUE)%>%
-#     file.info()%>%
-#     as_tibble(rownames = "file_name")%>%
-#     mutate("title" = str_extract(file_name,"[^/]*$"))
-# 
-# 
-# parcel_options <- www_contents%>%
-#     filter(
-#         str_detect(str_to_lower(title), "parcel")==TRUE,
-#         str_detect(title, ".shp$")
-#     )
-# 
-# parcel_file <- parcel_options%>%
-#     arrange(desc(mtime))%>%
-#     slice(1)%>%
-#     pull(file_name)
-# 
-# # parcel_file <- "www/savedData/DV_Parcels6142021.shp"
-# 
-# parcel_data <- st_read(parcel_file)
 
 parcels_tibble <- parcel_data%>%
     st_drop_geometry()%>%
@@ -194,38 +168,9 @@ ui <- fluidPage(tags$style(type="text/css",".shiny-output-error { visibility: hi
                 "Address and Parcel Number searches only cover Douglasville. To verify jurisdiction, please use the 'Confirm Jurisdiction' search at the top."
             )
             
-            ## Allow input of csv or shp changes to the system
-            ### This was replaced by reading data straight from City of Douglasville ArcGIS Online mapping service.
-            
-            # # helpText(h5("To update zoning information, please upload *.csv file with columns 'Parcel No.','Old Zoning',and 'New Zoning.'",br(),em("NOte: This system cannot handle parcel subdivisions and boundary changes. To change that, please upload new parcel file.")),'color:black'),
-            # # fileInput(
-            # #     inputId = "minUpdate",
-            # #     label = "Minor Updates"
-            # # ),
-            # # actionButton(
-            # #     "minGo",
-            # #     "Upload CSV"
-            # # ),
-            # helpText("To update the entire data set, please upload a shapefile", color = 'black'),
-            # fileInput(
-            #     inputId = "majUpdate",
-            #     label = "Upload New Shapefile",
-            #     multiple = T
-            # ),
-            # actionButton(
-            #     "majorGo",
-            #     "Upload shp files"
-            # # ),
-            # # helpText(
-            #     # "If you would like to make these changes permanent to all users, please enter the password"
-            #     ),
-            # uiOutput(
-            #     "memo"
-            #     )
-            
         ),
 
-        # Show a plot of the generated distribution
+        # Show the table
         mainPanel(
             tableOutput('zone_table')
         )

@@ -5,9 +5,10 @@ account: freyja
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4276514
-bundleId: 4793361
+bundleId: 4823244
 url: https://freyja.shinyapps.io/DouglasvilleZoningSearch/
-when: 1625603362.69531
-lastSyncTime: 1625603362.69531
+when: 1626370844.50112
+lastSyncTime: 1626370844.50112
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: .RData|README.md|scratch_code.R
