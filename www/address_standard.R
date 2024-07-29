@@ -42,11 +42,16 @@ geocode_arc_douglas <- function(address){
   rest_url <- paste0(rest_url, str_replace_all(q," ","%20")) # I haven't run into other changes that would need to be implemented, but changing ' ' to '%20' is the only one I've really looked into.
   
 
-  jur <- read_json(rest_url)%>%
-    flatten_dfc()%>%
-    select(1:10)%>%
-    rename_with(.fn = \(x){str_extract(x, "[:alpha:]+")})%>%
-    st_as_sf(coords = c("x","y"),crs=.$wkid)
+  jur <- jsonlite::fromJSON(rest_url) %>%
+    purrr::map(
+      \(x) as_tibble(x)
+    ) %>%
+    purrr::list_cbind() %>%
+    first()%>%
+    tidyr::unnest(cols = c(spatialReference, candidates)) %>%
+    tidyr::unnest(cols = c(location, extent))%>%
+    dplyr::select(wkid, address, x, y)%>%
+   sf::st_as_sf(coords = c("x","y"),crs=.$wkid)
   
   return(jur)
   
